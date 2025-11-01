@@ -142,6 +142,8 @@
       <ul>
         <li>Baseline min/max/media (norm.): <b><span id="a_min">—</span></b> / <b><span id="a_max">—</span></b> / <b><span id="a_mean">—</span></b></li>
         <li>D<sub>max</sub> (m) = <b><span id="a_Dmax">—</span></b> → θ ≈ λ/D<sub>max</sub> = <b><span id="a_theta">—</span></b></li>
+<li>|u|,|v| max (m/λ) = <b><span id="a_umax">—</span></b>, <b><span id="a_vmax">—</span></b></li>
+<li><button class="tab" id="btnExportArray">Export Array JSON</button></li>
       </ul>
     </section>
     <small class="muted">Le baseline sono distanze antenna‑antenna normalizzate (istogramma qualitativo, non uv‑coverage reale).</small>
@@ -156,6 +158,7 @@
       <label>Rotazione sintetica (°)</label>
       <input id="uv_rot" type="range" min="0" max="180" step="1" value="0">
       <span id="uv_rotVal">0°</span>
+      <label style="margin-left:8px">Heatmap <input id="uv_heat" type="checkbox"></label>
       <small class="muted">λ prende la frequenza dalla scheda Science. Scala e copertura sono illustrative.</small>
       <button class="tab" id="btnUvPng">Salva PNG</button>
       <small class="muted">Indicatore θ ≈ λ/D<sub>max</sub>: <b><span id="uv_theta">—</span></b></small>

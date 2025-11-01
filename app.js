@@ -315,6 +315,7 @@ function getArrayPoints(){
 }
 
 function drawUV(){
+  const heat = document.getElementById('uv_heat')?.checked;
   if(!uvView) return;
   const W=uvView.width,H=uvView.height;
   uvCtx.clearRect(0,0,W,H);
@@ -333,7 +334,8 @@ function drawUV(){
   const pts=getArrayPoints();
   // draw uv points (for each baseline add ± points)
   uvCtx.fillStyle='#eaf1ff';
-  for(let i=0;i<pts.length;i++){
+  
+  if(heat){ uvCtx.globalAlpha = 0.05; } else { uvCtx.globalAlpha = 1.0; }for(let i=0;i<pts.length;i++){
     for(let j=i+1;j<pts.length;j++){
       const bx = (pts[i].x - pts[j].x) * span; // m
       const by = (pts[i].y - pts[j].y) * span; // m
@@ -371,3 +373,32 @@ document.getElementById('s_freq')?.addEventListener('input', drawUV);
 document.getElementById('nAnt')?.addEventListener('input', drawUV);
 document.getElementById('geom')?.addEventListener('change', drawUV);
 drawUV();
+
+document.getElementById('btnExportArray')?.addEventListener('click', ()=>{
+  const pts = getArrayPoints();
+  const dists=[];
+  for(let i=0;i<pts.length;i++){ for(let j=i+1;j<pts.length;j++){ const dx=pts[i].x-pts[j].x,dy=pts[i].y-pts[j].y; dists.push(Math.sqrt(dx*dx+dy*dy)); } }
+  const span = parseFloat(document.getElementById('uv_span')?.value||'200');
+  const lambda = getScienceLambda();
+  const Dmax_m = (dists.length? Math.max(...dists):0) * span;
+  const theta_arcmin = (lambda/Math.max(1e-6,Dmax_m))*180/Math.PI*60;
+  const umax = Dmax_m/lambda, vmax = umax;
+
+  const payload = {
+    timestamp: new Date().toISOString(),
+    N: pts.length,
+    geometry: document.getElementById('geom')?.value || 'unknown',
+    span_m: span,
+    lambda_m: lambda,
+    Dmax_m: Dmax_m,
+    theta_arcmin: theta_arcmin,
+    umax: umax, vmax: vmax,
+    points_norm: pts
+  };
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([JSON.stringify(payload,null,2)],{type:'application/json'}));
+  a.download='dex_array_estimator.json';
+  a.click();
+});
+
+function setText(id, val){ const el=document.getElementById(id); if(el) el.textContent = val; }
