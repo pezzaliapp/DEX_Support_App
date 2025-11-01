@@ -366,40 +366,172 @@ document.getElementById('geom')?.addEventListener('change', drawUV);
 drawUV();
 
 
-/* --- Lunar Env Animation --- */
+/* --- Payload Configuration --- */
 (function(){
-  const $ = (q)=>document.querySelector(q);
-  const phase = $('#phase');
-  const auto = $('#envAuto');
-  const speed = $('#envSpeed');
-  const speedVal = $('#envSpeedVal');
-  const canvas = $('#envView');
-  if(!canvas || !phase) return;
+  const $=(q)=>document.querySelector(q);
+  const type=$('#pl_type'), N=$('#pl_N'), Nval=$('#pl_N_val'), size=$('#pl_size'), sizeVal=$('#pl_size_val'),
+        mElem=$('#pl_m_elem'), mElemVal=$('#pl_m_elem_val'), pElem=$('#pl_p_elem'), pElemVal=$('#pl_p_elem_val'),
+        pElec=$('#pl_p_elec'), pElecVal=$('#pl_p_elec_val'), mCable=$('#pl_m_cable'), mCableVal=$('#pl_m_cable_val'),
+        deploy=$('#pl_deploy'), margin=$('#pl_margin'), marginVal=$('#pl_margin_val');
+  const mTot=$('#pl_m_total'), pTot=$('#pl_p_total'), vTot=$('#pl_v_total'), note=$('#pl_note');
+  const btnJSON=$('#pl_export_json'), btnReport=$('#pl_report');
 
-  let running = false, rafId=null, last=0;
+  if(!type||!N) return; // tab not in this build
 
-  function setSpeedLabel(){
-    if(speed && speedVal){ speedVal.textContent = (parseFloat(speed.value||'0.25')).toFixed(2)+'°/s'; }
+  function defaultsByType(t){
+    if(t==='xdipole') return {mElem:1.6, pElem:4.5};
+    if(t==='loop')    return {mElem:1.8, pElem:2.5};
+    return {mElem:1.2, pElem:3.0}; // dipole
   }
-  setSpeedLabel();
+  function deployNote(t){
+    if(t==='rover') return 'posa su area > span; tempo operativo ↑, massa rover non inclusa';
+    if(t==='inflatable') return 'gonfiabile: massa bassa, rischio perdite & UV';
+    if(t==='tether') return 'tether: copertura lineare, cablaggi lunghi';
+    return 'lander statico: copertura limitata, deployment semplice';
+  }
+  function estimateVolume(N, size, t){
+    // toy: bundle elements (π*(d/2)^2 * length * count) scaled
+    const d = Math.max(0.05, Math.min(0.5, size*0.02)); // 2% of size as diameter proxy
+    const L = Math.max(1, size);
+    const vol = 3.1416*(d/2)**2 * L * N * (t==='xdipole'?1.8:(t==='loop'?1.4:1.0));
+    return vol.toFixed(2);
+  }
+  function updateLabels(){
+    Nval.textContent = N.value;
+    sizeVal.textContent = size.value + ' m';
+    mElemVal.textContent = mElem.value + ' kg';
+    pElemVal.textContent = pElem.value + ' W';
+    pElecVal.textContent = pElec.value + ' W';
+    mCableVal.textContent = mCable.value + ' kg';
+    marginVal.textContent = margin.value + '%';
+  }
+  function compute(){
+    updateLabels();
+    const n = parseInt(N.value||'0');
+    const t = type.value;
+    // snap defaults on type change (soft)
+    const d = defaultsByType(t);
+    if(document.activeElement===type){ mElem.value = d.mElem; pElem.value = d.pElem; }
+    const m = n*parseFloat(mElem.value||'0') + parseFloat(mCable.value||'0');
+    const p = n*parseFloat(pElem.value||'0') + parseFloat(pElec.value||'0');
+    const marg = 1 + parseFloat(margin.value||'0')/100;
+    const m_final = (m*marg).toFixed(1);
+    const p_final = (p*marg).toFixed(1);
+    const vol = estimateVolume(n, parseFloat(size.value||'1'), t);
+    const txt = deployNote(deploy.value);
+    mTot.textContent = m_final;
+    pTot.textContent = p_final;
+    vTot.textContent = vol;
+    note.textContent = txt;
+  }
+  ['input','change'].forEach(ev=>{
+    [type,N,size,mElem,pElem,pElec,mCable,deploy,margin].forEach(el=> el && el.addEventListener(ev, compute));
+  });
+  compute();
 
-  function step(ts){
-    if(!running){ return; }
-    if(!last){ last = ts; }
-    const dt = (ts - last)/1000; // seconds
-    last = ts;
-    const v = parseFloat(speed?.value || '0.25'); // deg/s
-    let phi = parseFloat(phase.value||'0');
-    phi = (phi + v*dt) % 360;
-    phase.value = String(phi.toFixed(2));
-    const evt = new Event('input', {bubbles:true});
-    phase.dispatchEvent(evt);
-    rafId = requestAnimationFrame(step);
+  function currentScience(){
+    const s=document.getElementById('s_freq'); const fMHz=s?parseFloat(s.value||'30'):30;
+    const z=1420/fMHz-1, lambda=300/fMHz;
+    return {fMHz,z,lambda_m:lambda};
+  }
+  function currentArray(){
+    try{
+      const N=parseInt(document.getElementById('nAnt').value||'24');
+      const g=document.getElementById('geom').value;
+      const pts=(typeof genAntennas==='function'? genAntennas(N,g):[]).map(p=>({x:p.x,y:p.y}));
+      const dists=[]; for(let i=0;i<pts.length;i++){ for(let j=i+1;j<pts.length;j++){ const dx=pts[i].x-pts[j].x,dy=pts[i].y-pts[j].y; dists.push(Math.sqrt(dx*dx+dy*dy)); } }
+      const span=parseFloat(document.getElementById('uv_span')?.value||'200');
+      const maxv=dists.length?Math.max(...dists):0;
+      const Dmax_m = maxv*span;
+      const umax = (Dmax_m>0)? Dmax_m/(300/parseFloat((document.getElementById('s_freq')?.value||'30'))) : 0;
+      return {N,geometry:g,span_m:span,Dmax_m,umax,points_norm:pts};
+    }catch(e){ return {}; }
   }
 
-  function start(){ if(!running){ running = true; last = 0; rafId = requestAnimationFrame(step); } }
-  function stop(){ running = false; if(rafId){ cancelAnimationFrame(rafId); rafId=null; } }
+  btnJSON?.addEventListener('click', ()=>{
+    const payload = {
+      timestamp: new Date().toISOString(),
+      science: currentScience(),
+      array: currentArray(),
+      payload: {
+        type: type.value, N: parseInt(N.value||'0'), size_m: parseFloat(size.value||'0'),
+        m_elem_kg: parseFloat(mElem.value||'0'), p_elem_W: parseFloat(pElem.value||'0'),
+        p_elec_W: parseFloat(pElec.value||'0'), m_cable_kg: parseFloat(mCable.value||'0'),
+        deploy: deploy.value, margin_pct: parseFloat(margin.value||'0'),
+        totals: { mass_kg: parseFloat(mTot.textContent||'0'), power_W: parseFloat(pTot.textContent||'0'), volume_m3: parseFloat(vTot.textContent||'0') }
+      }
+    };
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(new Blob([JSON.stringify(payload,null,2)],{type:'application/json'}));
+    a.download='dex_payload_config.json'; a.click();
+  });
 
-  auto?.addEventListener('change', ()=>{ auto.checked ? start() : stop(); });
-  speed?.addEventListener('input', setSpeedLabel);
+  btnReport?.addEventListener('click', ()=>{
+    const S=currentScience(); const A=currentArray();
+    const m=mTot.textContent, p=pTot.textContent, v=vTot.textContent;
+    const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>DEX‑Edu Payload Report</title>
+    <style>body{font-family:system-ui,Segoe UI,Roboto,Arial;margin:24px;color:#111}h1{margin:0 0 8px}small{color:#555}table{border-collapse:collapse;margin-top:8px}td,th{border:1px solid #ccc;padding:6px 8px}</style></head>
+    <body><h1>Payload Report</h1><small>${new Date().toLocaleString()}</small>
+    <h2>Science (snapshot)</h2>
+    <ul><li>f = ${S.fMHz} MHz → z ≈ ${S.z.toFixed(2)}, λ ≈ ${S.lambda_m.toFixed(2)} m</li></ul>
+    <h2>Array (snapshot)</h2>
+    <ul><li>N = ${A.N||'—'}, geom = ${A.geometry||'—'}, span = ${A.span_m||'—'} m, Dmax = ${(A.Dmax_m||0).toFixed?A.Dmax_m.toFixed(1):A.Dmax_m} m, |u|max ≈ ${(A.umax||0).toFixed?A.umax.toFixed(1):A.umax}</li></ul>
+    <h2>Payload</h2>
+    <table><tr><th>Tipo</th><th>N</th><th>Size (m)</th><th>m_elem (kg)</th><th>p_elem (W)</th><th>p_elec (W)</th><th>m_cable (kg)</th><th>Deploy</th><th>Margine (%)</th></tr>
+    <tr><td>${type.value}</td><td>${N.value}</td><td>${size.value}</td><td>${mElem.value}</td><td>${pElem.value}</td><td>${pElec.value}</td><td>${mCable.value}</td><td>${deploy.value}</td><td>${margin.value}</td></tr></table>
+    <p><b>Massa totale:</b> ${m} kg — <b>Potenza totale:</b> ${p} W — <b>Volume:</b> ${v} m³</p>
+    <script>window.onload=()=>window.print()</script></body></html>`;
+    const w=window.open('about:blank','_blank'); w.document.write(html); w.document.close();
+  });
+})();
+
+/* --- RFI Shield: robust redraw (Moon + Earth + shadow) --- */
+(function(){
+  const canvas=document.getElementById('shieldView');
+  if(!canvas) return;
+  const ctx=canvas.getContext('2d');
+  const phase=document.getElementById('phase');
+  const phaseVal=document.getElementById('phaseVal');
+
+  function drawShieldFix(){
+    const W=canvas.width, H=canvas.height;
+    ctx.clearRect(0,0,W,H);
+    // bg
+    const g=ctx.createLinearGradient(0,0,0,H); g.addColorStop(0,'#0d142e'); g.addColorStop(1,'#0a1126'); ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
+    // Earth
+    const Ex=W*0.25,Ey=H*0.6,Er=48;
+    ctx.fillStyle='#2b6cff'; ctx.beginPath(); ctx.arc(Ex,Ey,Er,0,Math.PI*2); ctx.fill();
+    // Moon
+    const Mx=W*0.72, My=H*0.55, Mr=60;
+    ctx.fillStyle='#cfd2db'; ctx.beginPath(); ctx.arc(Mx,My,Mr,0,Math.PI*2); ctx.fill();
+    // far-side half (dark overlay)
+    ctx.fillStyle='rgba(0,0,0,0.38)'; ctx.beginPath(); ctx.arc(Mx,My,Mr,-Math.PI/2,Math.PI/2); ctx.lineTo(Mx,My); ctx.closePath(); ctx.fill();
+    // phase / shadow slab
+    const deg = parseFloat(phase?.value||'30'); if(phaseVal) phaseVal.textContent = `${Math.round(deg)}°`;
+    const ang = deg*Math.PI/180;
+    ctx.save(); ctx.translate(Mx,My); ctx.rotate(ang);
+    ctx.strokeStyle='rgba(105,208,143,0.9)'; ctx.fillStyle='rgba(105,208,143,0.12)';
+    ctx.beginPath(); ctx.moveTo(-Mr-14,-26); ctx.lineTo(W, -120); ctx.lineTo(W, 120); ctx.lineTo(-Mr-14,26); ctx.closePath(); ctx.fill(); ctx.stroke();
+    ctx.restore();
+
+    // labels
+    ctx.fillStyle='#eaf1ff'; ctx.font='13px system-ui';
+    ctx.fillText('Earth (RFI)', Ex-36, Ey-60);
+    ctx.fillText('Moon — far side', Mx-46, My-74);
+    ctx.fillText('Radio shadow (concept)', W*0.52, 22);
+  }
+
+  // Hook slider
+  ['input','change'].forEach(ev=> phase && phase.addEventListener(ev, drawShieldFix));
+  // First draw
+  drawShieldFix();
+
+  // Export PNG
+  const btn=document.getElementById('btnShieldPng');
+  btn?.addEventListener('click', ()=>{
+    const a=document.createElement('a');
+    a.href=canvas.toDataURL('image/png');
+    a.download='rfi_shield.png';
+    a.click();
+  });
 })();

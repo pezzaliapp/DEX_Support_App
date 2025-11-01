@@ -154,6 +154,67 @@
     <div class="canvasWrap"><canvas id="uvView" width="800" height="420" aria-label="uv coverage"></canvas></div>
   </section>
 
+
+  <section class="card tabpanel" id="tab-payload" hidden>
+    <h2>Payload Configuration (toy)</h2>
+    <div class="grid grid-2">
+      <div>
+        <div class="controls">
+          <label>Tipo antenna</label>
+          <select id="pl_type">
+            <option value="dipole">Dipolo lineare</option>
+            <option value="xdipole">Crossed dipole</option>
+            <option value="loop">Loop</option>
+          </select>
+          <label>Numero elementi</label>
+          <input id="pl_N" type="range" min="4" max="256" step="2" value="24">
+          <span id="pl_N_val">24</span>
+          <label>Lunghezza/diametro elemento (m)</label>
+          <input id="pl_size" type="range" min="1" max="20" step="0.5" value="5">
+          <span id="pl_size_val">5 m</span>
+          <label>Mass per elemento (kg)</label>
+          <input id="pl_m_elem" type="range" min="0.2" max="10" step="0.1" value="1.2">
+          <span id="pl_m_elem_val">1.2 kg</span>
+          <label>Power per elemento (W)</label>
+          <input id="pl_p_elem" type="range" min="0.5" max="20" step="0.5" value="3">
+          <span id="pl_p_elem_val">3 W</span>
+          <label>Elettronica RF (W) — LNA/ADC/FPGA</label>
+          <input id="pl_p_elec" type="range" min="5" max="200" step="5" value="40">
+          <span id="pl_p_elec_val">40 W</span>
+          <label>Cablaggi & strutture (kg)</label>
+          <input id="pl_m_cable" type="range" min="0" max="80" step="1" value="12">
+          <span id="pl_m_cable_val">12 kg</span>
+          <label>Deployment</label>
+          <select id="pl_deploy">
+            <option value="lander">Lander (statico)</option>
+            <option value="rover">Rover (posa estesa)</option>
+            <option value="inflatable">Gonfiabile</option>
+            <option value="tether">Tether</option>
+          </select>
+          <label>Margine progetto (%)</label>
+          <input id="pl_margin" type="range" min="0" max="40" step="1" value="20">
+          <span id="pl_margin_val">20%</span>
+        </div>
+        <small class="muted">Stime indicative per concept study ESA — non rappresentano design definitivo.</small>
+      </div>
+      <div>
+        <section class="card">
+          <h3>Budget stimato</h3>
+          <ul>
+            <li><b>Massa totale</b>: <span id="pl_m_total">—</span> kg</li>
+            <li><b>Potenza totale</b>: <span id="pl_p_total">—</span> W</li>
+            <li><b>Volume imballo (stima)</b>: <span id="pl_v_total">—</span> m³</li>
+            <li><b>Note deploy</b>: <span id="pl_note">—</span></li>
+          </ul>
+          <div class="controls">
+            <button class="tab" id="pl_export_json">Export JSON</button>
+            <button class="tab" id="pl_report">Apri report stampabile</button>
+          </div>
+        </section>
+      </div>
+    </div>
+  </section>
+
   <section class="card tabpanel" id="tab-shield" hidden>
     <h2>Lunar Far‑Side Radio Shield</h2>
     <p>Illustrazione concettuale del “cono d’ombra” radio rispetto alla Terra. Trascina il cursore per ruotare la geometria.</p>
@@ -163,6 +224,7 @@
       <span id="phaseVal">30°</span>
     </div>
     <div class="canvasWrap"><canvas id="shieldView" width="800" height="320" aria-label="RFI shield"></canvas></div>
+<div class="controls"><button class="tab" id="btnShieldPng">Export PNG</button></div>
   </section>
 </main>
 
