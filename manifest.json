@@ -17,5 +17,9 @@
       "type": "image/png",
       "purpose": "maskable any"
     }
-  ]
+  ],
+  "description_en": "Educational ULW/DEX prototype: 21‑cm, array planner, uv-plane, lunar env, RFI shield, payload. MIT.",
+  "description_it": "Prototipo educativo ULW/DEX: 21‑cm, planner array, uv-plane, ambiente lunare, RFI shield, payload. MIT.",
+  "description": "Educational ULW/DEX prototype: 21‑cm, array planner, uv-plane, lunar env, RFI shield, payload. MIT.",
+  "lang": "en"
 }
