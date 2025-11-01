@@ -315,7 +315,6 @@ function getArrayPoints(){
 }
 
 function drawUV(){
-  const heat = document.getElementById('uv_heat')?.checked;
   if(!uvView) return;
   const W=uvView.width,H=uvView.height;
   uvCtx.clearRect(0,0,W,H);
@@ -334,8 +333,7 @@ function drawUV(){
   const pts=getArrayPoints();
   // draw uv points (for each baseline add ± points)
   uvCtx.fillStyle='#eaf1ff';
-  
-  if(heat){ uvCtx.globalAlpha = 0.05; } else { uvCtx.globalAlpha = 1.0; }for(let i=0;i<pts.length;i++){
+  for(let i=0;i<pts.length;i++){
     for(let j=i+1;j<pts.length;j++){
       const bx = (pts[i].x - pts[j].x) * span; // m
       const by = (pts[i].y - pts[j].y) * span; // m
@@ -349,13 +347,6 @@ function drawUV(){
         if(x>20 && x<W-20 && y>20 && y<H-20){
           uvCtx.beginPath(); uvCtx.arc(x,y,2,0,Math.PI*2); uvCtx.fill();
         }
-document.getElementById('btnUvPng')?.addEventListener('click',()=>{
-  const a=document.createElement('a');
-  a.href=uvView.toDataURL('image/png');
-  a.download='uv_plane.png';
-  a.click();
-});
-
       };
       plot(u,v); plot(-u,-v);
     }
@@ -374,114 +365,41 @@ document.getElementById('nAnt')?.addEventListener('input', drawUV);
 document.getElementById('geom')?.addEventListener('change', drawUV);
 drawUV();
 
-document.getElementById('btnExportArray')?.addEventListener('click', ()=>{
-  const pts = getArrayPoints();
-  const dists=[];
-  for(let i=0;i<pts.length;i++){ for(let j=i+1;j<pts.length;j++){ const dx=pts[i].x-pts[j].x,dy=pts[i].y-pts[j].y; dists.push(Math.sqrt(dx*dx+dy*dy)); } }
-  const span = parseFloat(document.getElementById('uv_span')?.value||'200');
-  const lambda = getScienceLambda();
-  const Dmax_m = (dists.length? Math.max(...dists):0) * span;
-  const theta_arcmin = (lambda/Math.max(1e-6,Dmax_m))*180/Math.PI*60;
-  const umax = Dmax_m/lambda, vmax = umax;
 
-  const payload = {
-    timestamp: new Date().toISOString(),
-    N: pts.length,
-    geometry: document.getElementById('geom')?.value || 'unknown',
-    span_m: span,
-    lambda_m: lambda,
-    Dmax_m: Dmax_m,
-    theta_arcmin: theta_arcmin,
-    umax: umax, vmax: vmax,
-    points_norm: pts
-  };
-  const a=document.createElement('a');
-  a.href=URL.createObjectURL(new Blob([JSON.stringify(payload,null,2)],{type:'application/json'}));
-  a.download='dex_array_estimator.json';
-  a.click();
-});
-
-function setText(id, val){ const el=document.getElementById(id); if(el) el.textContent = val; }
-
-
-/* --- Lunar Environment & Quiet Window (educational model) --- */
+/* --- Lunar Env Animation --- */
 (function(){
   const $ = (q)=>document.querySelector(q);
-  const canvas = $('#envView'); if(!canvas) return;
-  const ctx = canvas.getContext('2d');
-  const phase = $('#phase'); // existing phase from RFI shield
-  const libAmp = $('#libAmp');
-  const quietMargin = $('#quietMargin');
-  const libAmpVal = $('#libAmpVal');
-  const quietMarginVal = $('#quietMarginVal');
-  const quietFracEl = $('#quietFrac');
-  const quietStateEl = $('#quietState');
+  const phase = $('#phase');
+  const auto = $('#envAuto');
+  const speed = $('#envSpeed');
+  const speedVal = $('#envSpeedVal');
+  const canvas = $('#envView');
+  if(!canvas || !phase) return;
 
-  // constants
-  const Rm = 1737.4;          // km
-  const dEM = 384400;         // km
-  const thetaShadow = Math.asin(Rm/dEM) * 180/Math.PI; // ≈0.26°
+  let running = false, rafId=null, last=0;
 
-  function computeQuietHalfAngle(){
-    const amp = parseFloat(libAmp?.value||'8');
-    const margin = parseFloat(quietMargin?.value||'2');
-    libAmpVal && (libAmpVal.textContent = `±${amp}°`);
-    quietMarginVal && (quietMarginVal.textContent = `${margin}°`);
-    const half = Math.max(1, thetaShadow + margin - amp); // clamp to >=1° for visibility
-    return half;
+  function setSpeedLabel(){
+    if(speed && speedVal){ speedVal.textContent = (parseFloat(speed.value||'0.25')).toFixed(2)+'°/s'; }
   }
-  function computeQuietFraction(){
-    const half = computeQuietHalfAngle();
-    // Quiet arc is centered at 180°, total width = 2*half
-    return Math.min(1, Math.max(0, (2*half)/360));
-  }
-  function isQuietNow(phiDeg){
-    // Quiet if the current orbital phase (Earth-centered) is within the quiet arc around 180°
-    const half = computeQuietHalfAngle();
-    const diff = Math.abs(((phiDeg - 180 + 540)%360)-180); // distance to 180°, wrap
-    return diff <= half;
+  setSpeedLabel();
+
+  function step(ts){
+    if(!running){ return; }
+    if(!last){ last = ts; }
+    const dt = (ts - last)/1000; // seconds
+    last = ts;
+    const v = parseFloat(speed?.value || '0.25'); // deg/s
+    let phi = parseFloat(phase.value||'0');
+    phi = (phi + v*dt) % 360;
+    phase.value = String(phi.toFixed(2));
+    const evt = new Event('input', {bubbles:true});
+    phase.dispatchEvent(evt);
+    rafId = requestAnimationFrame(step);
   }
 
-  function draw(){
-    const W=canvas.width, H=canvas.height;
-    ctx.clearRect(0,0,W,H);
-    // background
-    const g=ctx.createLinearGradient(0,0,0,H); g.addColorStop(0,'#0d142e'); g.addColorStop(1,'#0a1126'); ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
-    // Earth at center-left
-    const Ex=W*0.32,Ey=H*0.52,Er=38;
-    ctx.fillStyle='#2b6cff'; ctx.beginPath(); ctx.arc(Ex,Ey,Er,0,Math.PI*2); ctx.fill();
-    // Orbit circle
-    const Rorb=Math.min(W,H)*0.28;
-    ctx.strokeStyle='#243b78'; ctx.lineWidth=1.5; ctx.beginPath(); ctx.arc(Ex,Ey,Rorb,0,Math.PI*2); ctx.stroke();
-    // Quiet window arc around 180°
-    const half = computeQuietHalfAngle()*Math.PI/180;
-    ctx.strokeStyle='rgba(105,208,143,0.9)'; ctx.lineWidth=8; ctx.beginPath();
-    ctx.arc(Ex,Ey,Rorb, Math.PI - half, Math.PI + half);
-    ctx.stroke();
-    // Moon position from phase slider (0°=congiunzione, 180°=opposizione)
-    const phi = parseFloat( (phase?.value||'30') ) * Math.PI/180;
-    const Mx = Ex + Rorb*Math.cos(phi), My=Ey + Rorb*Math.sin(phi);
-    // Moon
-    ctx.fillStyle='#cfd2db'; ctx.beginPath(); ctx.arc(Mx,My,16,0,Math.PI*2); ctx.fill();
-    // Far-side mark (opposite of Earth direction)
-    ctx.strokeStyle='rgba(255,255,255,0.25)'; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(Mx,My); ctx.lineTo(Mx + 40*Math.cos(phi), My + 40*Math.sin(phi)); ctx.stroke();
+  function start(){ if(!running){ running = true; last = 0; rafId = requestAnimationFrame(step); } }
+  function stop(){ running = false; if(rafId){ cancelAnimationFrame(rafId); rafId=null; } }
 
-    // Labels
-    ctx.fillStyle='#eaf1ff'; ctx.font='12px system-ui';
-    ctx.fillText('Earth (RFI)', Ex-32, Ey-50);
-    ctx.fillText('Moon', Mx-16, My-22);
-    ctx.fillText('Quiet window', Ex+Rorb*Math.cos(Math.PI)-50, Ey-Rorb-10);
-
-    // Quiet status
-    const quiet = isQuietNow( parseFloat(phase?.value||'30') );
-    const frac = computeQuietFraction();
-    if(quietFracEl) quietFracEl.textContent = (frac*100).toFixed(1)+'%';
-    if(quietStateEl) { quietStateEl.textContent = quiet? 'QUIET' : 'NOISY'; quietStateEl.style.color = quiet? '#69d08f' : '#ff9aa5'; }
-  }
-  ['input','change'].forEach(ev=>{
-    phase && phase.addEventListener(ev, draw);
-    libAmp && libAmp.addEventListener(ev, draw);
-    quietMargin && quietMargin.addEventListener(ev, draw);
-  });
-  draw();
+  auto?.addEventListener('change', ()=>{ auto.checked ? start() : stop(); });
+  speed?.addEventListener('input', setSpeedLabel);
 })();
