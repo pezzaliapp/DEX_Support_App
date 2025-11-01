@@ -3,12 +3,10 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
-  <title>DEX-Edu Support App — Dark-Ages EXplorer Educational Tool</title>
+  <title>DEX‑Edu Debug — ULW & Lunar Far Side</title>
   <meta name="theme-color" content="#0b1022">
   <link rel="manifest" href="manifest.json">
   <link rel="apple-touch-icon" href="assets/icon-192.png">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -16,12 +14,11 @@
   <div class="container" style="display:flex;gap:12px;align-items:center;justify-content:space-between">
     <div style="display:flex;gap:12px;align-items:center">
       <img src="assets/icon-192.png" alt="DEX" width="32" height="32" style="border-radius:8px">
-      <h1>DEX-Edu Support App <span class="badge">ispirata a DEX — Dark-Ages EXplorer</span></h1>
+      <h1>DEX‑Edu (Debug) <span class="badge">senza Service Worker</span></h1>
     </div>
     <div class="lang">
       <button class="tab" id="btnIT">IT</button>
       <button class="tab" id="btnEN">EN</button>
-      <button class="tab" id="btnInstall" title="Installa PWA">⬇︎ Install</button>
     </div>
   </div>
   <div class="container">
@@ -37,10 +34,11 @@
 </header>
 
 <main class="container">
+  <div id="err" class="hidden"></div>
+
   <section class="card tabpanel" id="tab-overview">
-    <h2>Cos'è DEX — Dark-Ages EXplorer</h2>
-    <p>DEX (Dark-Ages EXplorer) è un concept europeo per un interferometro ULW sulla <b>faccia nascosta della Luna</b> per sondare il cosmo primordiale.</p>
-    <p class="small muted"><b>Nota legale:</b> progetto indipendente a scopo educativo ispirato a DEX — non affiliato/approvato da ESA o partner.</p>
+    <h2>Overview</h2>
+    <p class="small muted"><b>Debug build</b>: niente service worker, ricarico file sempre freschi.</p>
     <section class="card">
       <h3>Export & Report</h3>
       <div class="controls">
@@ -155,8 +153,7 @@
 
 <footer>
   <div class="container">
-    <div><small class="muted">MIT License • Offline‑ready PWA</small></div>
-    <div><small class="muted">Ispirata al concept DEX • Nessuna affiliazione ufficiale • <a href="https://github.com/yourname/DEX-Edu" target="_blank" rel="noopener">Contribuisci su GitHub</a></small></div>
+    <div><small class="muted">MIT License • Debug build (no SW)</small></div>
   </div>
 </footer>
 

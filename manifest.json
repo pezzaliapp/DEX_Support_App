@@ -1,6 +1,6 @@
 {
-  "name": "DEX-Edu Support App — Dark-Ages EXplorer Educational Tool",
-  "short_name": "DEX-Edu",
+  "name": "DEX‑Edu (Debug)",
+  "short_name": "DEX‑Edu",
   "start_url": ".",
   "display": "standalone",
   "background_color": "#0b1022",

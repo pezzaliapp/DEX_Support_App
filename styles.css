@@ -10,4 +10,5 @@ nav{display:flex;gap:8px;flex-wrap:wrap}.tab{background:#162351;color:var(--ink)
 .controls{display:grid;grid-template-columns:auto 1fr auto;gap:8px;align-items:center;margin:8px 0}
 .canvasWrap{background:#0a1330;border:1px solid #1f2f64;border-radius:12px;padding:6px}
 small.muted{color:var(--muted)}
-footer small a{color:#9fd0ff}
+#err{white-space:pre-wrap;background:#220b12;border:1px solid #5b1f2a;border-radius:12px;padding:10px;margin:10px 0;color:#ffd9e1}
+.hidden{display:none}
