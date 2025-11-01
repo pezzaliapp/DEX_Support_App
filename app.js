@@ -347,6 +347,13 @@ function drawUV(){
         if(x>20 && x<W-20 && y>20 && y<H-20){
           uvCtx.beginPath(); uvCtx.arc(x,y,2,0,Math.PI*2); uvCtx.fill();
         }
+document.getElementById('btnUvPng')?.addEventListener('click',()=>{
+  const a=document.createElement('a');
+  a.href=uvView.toDataURL('image/png');
+  a.download='uv_plane.png';
+  a.click();
+});
+
       };
       plot(u,v); plot(-u,-v);
     }
