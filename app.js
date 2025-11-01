@@ -16,7 +16,8 @@ const panels={
   science:document.getElementById('tab-science'),
   sim21:document.getElementById('tab-sim21'),
   array:document.getElementById('tab-array'),
-  shield:document.getElementById('tab-shield')
+  shield:document.getElementById('tab-shield'),
+  uv:document.getElementById('tab-uv')
 };
 tabs.forEach(btn=>btn.addEventListener('click',()=>{
   tabs.forEach(b=>b.classList.remove('active'));btn.classList.add('active');
@@ -277,3 +278,89 @@ function openReport(){
 document.getElementById('exportJSON')?.addEventListener('click',downloadJSON);
 document.getElementById('exportCSV')?.addEventListener('click',downloadCSV);
 document.getElementById('openReport')?.addEventListener('click',openReport);
+
+
+/* uv-plane (qualitativo) */
+const uvView=document.getElementById('uvView');const uvCtx=uvView?.getContext('2d');
+const uv_span=document.getElementById('uv_span'); const uv_spanVal=document.getElementById('uv_spanVal');
+const uv_rot=document.getElementById('uv_rot'); const uv_rotVal=document.getElementById('uv_rotVal');
+
+function getScienceLambda(){
+  const s=document.getElementById('s_freq');
+  if(!s) return 10; // fallback: λ=10 m (≈30 MHz)
+  const fMHz=parseFloat(s.value)||30;
+  return 300/fMHz;
+}
+function getArrayPoints(){
+  const N=parseInt(document.getElementById('nAnt').value);
+  const g=document.getElementById('geom').value;
+  // reuse generator from Array Planner
+  function gen(N,type){
+    const pts=[];
+    if(type==='grid'){
+      const side=Math.ceil(Math.sqrt(N)); const s=1/Math.max(1,side-1);
+      for(let i=0;i<side;i++){ for(let j=0;j<side;j++){ if(pts.length>=N) break; pts.push({x:i*s,y:j*s}); } }
+    }else if(type==='ring'){
+      const rings=Math.max(2,Math.ceil(Math.sqrt(N)/3)+1);
+      let used=0;
+      for(let r=1;r<=rings;r++){
+        const R=(r/(rings+0.3)); const k=Math.max(6,Math.round((2*r/(rings*(rings+1)))*N));
+        for(let t=0;t<k;t++){ if(used>=N) break; const a=(t/k)*Math.PI*2; pts.push({x:0.5+R*Math.cos(a)*0.9,y:0.5+R*Math.sin(a)*0.9}); used++; }
+      }
+      while(pts.length<N){ const a=Math.random()*Math.PI*2; const R=0.95; pts.push({x:0.5+R*Math.cos(a)*0.9,y:0.5+R*Math.sin(a)*0.9}); }
+    }else{ for(let i=0;i<N;i++){ pts.push({x:Math.random(),y:Math.random()}); } }
+    return pts.map(p=>({x:2*(p.x-0.5),y:2*(p.y-0.5)}));
+  }
+  return gen(N,g);
+}
+
+function drawUV(){
+  if(!uvView) return;
+  const W=uvView.width,H=uvView.height;
+  uvCtx.clearRect(0,0,W,H);
+  uvCtx.fillStyle='#0a1330'; uvCtx.fillRect(0,0,W,H);
+  uvCtx.strokeStyle='#1f2f64'; uvCtx.strokeRect(10,10,W-20,H-20);
+  // axes
+  uvCtx.strokeStyle='#20356e'; uvCtx.beginPath();
+  uvCtx.moveTo(W/2,20); uvCtx.lineTo(W/2,H-20);
+  uvCtx.moveTo(20,H/2); uvCtx.lineTo(W-20,H/2);
+  uvCtx.stroke();
+  const span=parseFloat(uv_span.value); uv_spanVal.textContent = span+' m';
+  const rot=parseFloat(uv_rot.value)*Math.PI/180; uv_rotVal.textContent = parseInt(uv_rot.value)+'°';
+  const lambda=getScienceLambda();
+  // scale: pixels per |u| wavelength unit
+  const K = (Math.min(W,H)-80)/ (2 * (span/lambda)); // tries to fit max baseline/λ into view
+  const pts=getArrayPoints();
+  // draw uv points (for each baseline add ± points)
+  uvCtx.fillStyle='#eaf1ff';
+  for(let i=0;i<pts.length;i++){
+    for(let j=i+1;j<pts.length;j++){
+      const bx = (pts[i].x - pts[j].x) * span; // m
+      const by = (pts[i].y - pts[j].y) * span; // m
+      // rotate
+      const bxr =  bx*Math.cos(rot) - by*Math.sin(rot);
+      const byr =  bx*Math.sin(rot) + by*Math.cos(rot);
+      const u = bxr / lambda; const v = byr / lambda;
+      const plot = (uu,vv)=>{
+        const x = W/2 + uu*K;
+        const y = H/2 - vv*K;
+        if(x>20 and x<W-20 and y>20 and y<H-20){
+          uvCtx.beginPath(); uvCtx.arc(x,y,2,0,Math.PI*2); uvCtx.fill();
+        }
+      };
+      plot(u,v); plot(-u,-v);
+    }
+  }
+  // labels
+  uvCtx.fillStyle='#9fb0df'; uvCtx.font='12px system-ui';
+  uvCtx.fillText('u (λ)', W-60, H/2 - 8);
+  uvCtx.fillText('v (λ)', W/2 + 8, 28);
+  uvCtx.fillText(`λ ≈ ${lambda.toFixed(2)} m  |  span=${span} m`, 24, 28);
+}
+uv_span?.addEventListener('input', drawUV);
+uv_rot?.addEventListener('input', drawUV);
+// Also redraw UV when science frequency or array settings change
+document.getElementById('s_freq')?.addEventListener('input', drawUV);
+document.getElementById('nAnt')?.addEventListener('input', drawUV);
+document.getElementById('geom')?.addEventListener('change', drawUV);
+drawUV();
