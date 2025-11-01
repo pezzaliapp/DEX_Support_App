@@ -169,3 +169,111 @@ function updateScience(){
 updateScience();
 
 })();
+
+/* ---- Export Helpers ---- */
+function currentScience(){
+  if(!document.getElementById('s_freq')) return null;
+  const fMHz=parseFloat(document.getElementById('s_freq').value);
+  const d=parseFloat(document.getElementById('s_elem').value);
+  const theta_arcmin=parseFloat(document.getElementById('s_theta').value);
+  const z=1420/fMHz-1;
+  const lambda=300/fMHz;
+  const theta=(theta_arcmin/60)*Math.PI/180;
+  const D=lambda/theta;
+  const fov_deg=(lambda/d)*180/Math.PI;
+  return { fMHz, d_m:d, theta_arcmin, z, lambda_m:lambda, baseline_required_m:D, fov_deg };
+}
+function currentArray(){
+  // Recompute array using current UI values for consistency
+  const N=parseInt(document.getElementById('nAnt').value);
+  const g=document.getElementById('geom').value;
+  const pts=(function(){
+    const out=[];
+    if(g==='grid'){
+      const side=Math.ceil(Math.sqrt(N));
+      const s=1/Math.max(1,side-1);
+      for(let i=0;i<side;i++){
+        for(let j=0;j<side;j++){
+          if(out.length>=N) break;
+          out.push({x:i*s,y:j*s});
+        }
+      }
+    }else if(g==='ring'){
+      const rings=Math.max(2,Math.ceil(Math.sqrt(N)/3)+1);
+      let used=0;
+      for(let r=1;r<=rings;r++){
+        const R=(r/(rings+0.3));
+        const k=Math.max(6,Math.round((2*r/(rings*(rings+1)))*N));
+        for(let t=0;t<k;t++){
+          if(used>=N) break;
+          const a=(t/k)*Math.PI*2;
+          out.push({x:0.5+R*Math.cos(a)*0.9,y:0.5+R*Math.sin(a)*0.9,ring:r});
+          used++;
+        }
+      }
+      while(out.length<N){
+        const a=Math.random()*Math.PI*2;const R=0.95;
+        out.push({x:0.5+R*Math.cos(a)*0.9,y:0.5+R*Math.sin(a)*0.9,ring:rings});
+      }
+    }else{
+      for(let i=0;i<N;i++){out.push({x:Math.random(),y:Math.random()});}
+    }
+    return out.map(p=>({x:2*(p.x-0.5),y:2*(p.y-0.5),ring:p.ring||1}));
+  })();
+  // distances
+  const dists=[];
+  for(let i=0;i<pts.length;i++){for(let j=i+1;j<pts.length;j++){const dx=pts[i].x-pts[j].x,dy=pts[i].y-pts[j].y;dists.push(Math.sqrt(dx*dx+dy*dy));}}
+  // simple hist
+  const bins=30,hist=new Array(bins).fill(0);
+  dists.forEach(d=>{let k=Math.floor(d/Math.SQRT2*bins);if(k<0)k=0;if(k>=bins)k=bins-1;hist[k]++;});
+  return { N, geometry:g, points:pts, baselines:dists, histogram:hist, bins };
+}
+function download(filename, mime, content){
+  const blob=new Blob([content],{type:mime});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=filename;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),2000);
+}
+function downloadJSON(){
+  const payload={ timestamp:new Date().toISOString(), science:currentScience(), array:currentArray() };
+  download('dex_edu_export.json','application/json', JSON.stringify(payload,null,2));
+}
+function downloadCSV(){
+  const A=currentArray();
+  let csv='i,j,dx,dy,dist_norm\\n';
+  const pts=A.points;
+  for(let i=0;i<pts.length;i++){
+    for(let j=i+1;j<pts.length;j++){
+      const dx=(pts[i].x-pts[j].x).toFixed(6);
+      const dy=(pts[i].y-pts[j].y).toFixed(6);
+      const d=Math.sqrt((pts[i].x-pts[j].x)**2+(pts[i].y-pts[j].y)**2).toFixed(6);
+      csv+=`${i},${j},${dx},${dy},${d}\\n`;
+    }
+  }
+  download('dex_edu_baselines.csv','text/csv',csv);
+}
+function openReport(){
+  const S=currentScience(); const A=currentArray();
+  const html=`<!DOCTYPE html><html><head><meta charset='utf-8'><title>DEX-Edu Report</title>
+  <style>body{font-family:system-ui,Segoe UI,Roboto,Arial;margin:24px;color:#111}h1{margin:0 0 4px}small{color:#555}code{background:#f3f5f8;padding:2px 6px;border-radius:6px}table{border-collapse:collapse;margin-top:8px}td,th{border:1px solid #ccc;padding:6px 8px}</style></head>
+  <body>
+  <h1>DEX-Edu Support App — Report</h1>
+  <small>Generated: ${new Date().toLocaleString()}</small>
+  <h2>Science Parameters</h2>
+  <ul>
+    <li>f = <b>${S.fMHz} MHz</b> → z = <b>${S.z.toFixed(2)}</b>, λ = <b>${S.lambda_m.toFixed(2)} m</b></li>
+    <li>θ = <b>${S.theta_arcmin}′</b> → baseline richiesta D ≈ <b>${S.baseline_required_m.toFixed(1)} m</b></li>
+    <li>Elemento d = <b>${S.d_m} m</b> → FoV ≈ <b>${S.fov_deg.toFixed(1)}°</b></li>
+  </ul>
+  <h2>Array</h2>
+  <p>N = <b>${A.N}</b>, geometria = <b>${A.geometry}</b></p>
+  <p>Numero di baseline = ${A.baselines.length}</p>
+  <h3>Prime 20 baseline</h3>
+  <table><tr><th>#</th><th>dist_norm</th></tr>${
+    A.baselines.slice(0,20).map((d,i)=>`<tr><td>${i+1}</td><td>${d.toFixed?d.toFixed(6):d}</td></tr>`).join('')
+  }</table>
+  <script>window.onload=()=>window.print()</script>
+  </body></html>`;
+  const w=window.open('about:blank','_blank'); w.document.write(html); w.document.close();
+}
+document.getElementById('exportJSON')?.addEventListener('click',downloadJSON);
+document.getElementById('exportCSV')?.addEventListener('click',downloadCSV);
+document.getElementById('openReport')?.addEventListener('click',openReport);
