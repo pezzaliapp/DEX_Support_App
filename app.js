@@ -168,19 +168,29 @@
           pts.push({x:i*s, y:j*s});
         }
       }
+    
     }else if(type==='ring'){
-      const rings = Math.ceil(Math.sqrt(N)/2);
-      let count=0;
-      for(let r=1;r<=rings;r++){
-        const R = r/(rings+0.5);
-        const k = Math.max(6, Math.round(2*Math.pi*R*8));
-        for(let t=0;t<k;t++){
-          if(count>=N) break;
-          const a = (t/k)*Math.PI*2;
-          pts.push({x:0.5+R*Math.cos(a), y:0.5+R*Math.sin(a)});
-          count++;
+      // Improved: distribute N across concentric rings with increasing population.
+      const rings = Math.max(2, Math.ceil(Math.sqrt(N)/3)+1);
+      let used = 0;
+      for(let r=1; r<=rings; r++){
+        const R = (r/(rings+0.3)); // slightly larger for visibility
+        // allocate more antennas to outer rings
+        const k = Math.max(6, Math.round((2*r/(rings*(rings+1))) * N));
+        for(let t=0; t<k; t++){
+          if(used>=N) break;
+          const a = (t/k)*Math.PI*2; // FIX: Math.PI (not Math.pi)
+          pts.push({x:0.5 + R*Math.cos(a)*0.9, y:0.5 + R*Math.sin(a)*0.9, ring:r});
+          used++;
         }
       }
+      // if rounding left some slots, fill randomly near outer ring
+      while(pts.length<N){
+        const a = Math.random()*Math.PI*2;
+        const R = 0.95;
+        pts.push({x:0.5 + R*Math.cos(a)*0.9, y:0.5 + R*Math.sin(a)*0.9, ring:rings});
+      }
+
     }else{
       for(let i=0;i<N;i++){
         pts.push({x:Math.random(), y:Math.random()});
@@ -196,12 +206,15 @@
     aCtx.strokeStyle='#1f2f64'; aCtx.strokeRect(10,10,W-20,H-20);
     const N=parseInt(nAnt.value); nVal.textContent=N;
     const pts=genAntennas(N, geom.value);
-    // draw points
-    aCtx.fillStyle='#eaf1ff';
+    // draw points (color by ring if present)
     pts.forEach(p=>{
       const x= W/2 + p.x*(W*0.35);
       const y= H/2 + p.y*(H*0.35);
-      aCtx.beginPath(); aCtx.arc(x,y,4,0,Math.PI*2); aCtx.fill();
+      const ring = p.ring||1;
+      const hue = (210 + ring*20)%360;
+      aCtx.fillStyle = `hsl(${hue} 70% 82%)`;
+      aCtx.beginPath(); aCtx.arc(x,y,5,0,Math.PI*2); aCtx.fill();
+      aCtx.strokeStyle = '#0b1022'; aCtx.lineWidth=1; aCtx.stroke();
     });
     // baselines (distances)
     const dists=[];
