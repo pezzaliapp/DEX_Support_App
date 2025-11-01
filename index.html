@@ -175,6 +175,26 @@
       <span id="phaseVal">30°</span>
     </div>
     <div class="canvasWrap"><canvas id="shieldView" width="800" height="320" aria-label="RFI shield"></canvas></div>
+  
+    <section class="card" style="margin-top:12px">
+      <h3>Lunar Environment & Quiet Window</h3>
+      <p class="small muted">Modello semplificato: orbita stilizzata Terra‑Luna, finestra di quiete centrata a 180° (opposizione), ampiezza = ombra radio + margine − libration.</p>
+      <div class="controls">
+        <label>Ampiezza libration (±°)</label>
+        <input id="libAmp" type="range" min="0" max="10" step="0.5" value="8">
+        <span id="libAmpVal">±8°</span>
+        <label style="margin-left:8px">Margine ombra (°)</label>
+        <input id="quietMargin" type="range" min="0" max="10" step="0.5" value="2">
+        <span id="quietMarginVal">2°</span>
+      </div>
+      <div class="canvasWrap"><canvas id="envView" width="800" height="360" aria-label="Lunar environment"></canvas></div>
+      <small class="muted">Stime: θ<sub>shadow</sub>≈arcsin(R<sub>Moon</sub>/d<sub>EM</sub>)≈0.26°, diametro Terra visto dalla Luna ≈ 1.9°.</small>
+      <div class="controls">
+        <b>Quiet window frazione orbitale:</b> <span id="quietFrac">—</span>
+        <span style="margin-left:12px"><b>Stato attuale:</b> <span id="quietState">—</span></span>
+      </div>
+    </section>
+    
   </section>
 </main>
 

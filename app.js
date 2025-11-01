@@ -402,3 +402,86 @@ document.getElementById('btnExportArray')?.addEventListener('click', ()=>{
 });
 
 function setText(id, val){ const el=document.getElementById(id); if(el) el.textContent = val; }
+
+
+/* --- Lunar Environment & Quiet Window (educational model) --- */
+(function(){
+  const $ = (q)=>document.querySelector(q);
+  const canvas = $('#envView'); if(!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const phase = $('#phase'); // existing phase from RFI shield
+  const libAmp = $('#libAmp');
+  const quietMargin = $('#quietMargin');
+  const libAmpVal = $('#libAmpVal');
+  const quietMarginVal = $('#quietMarginVal');
+  const quietFracEl = $('#quietFrac');
+  const quietStateEl = $('#quietState');
+
+  // constants
+  const Rm = 1737.4;          // km
+  const dEM = 384400;         // km
+  const thetaShadow = Math.asin(Rm/dEM) * 180/Math.PI; // ≈0.26°
+
+  function computeQuietHalfAngle(){
+    const amp = parseFloat(libAmp?.value||'8');
+    const margin = parseFloat(quietMargin?.value||'2');
+    libAmpVal && (libAmpVal.textContent = `±${amp}°`);
+    quietMarginVal && (quietMarginVal.textContent = `${margin}°`);
+    const half = Math.max(1, thetaShadow + margin - amp); // clamp to >=1° for visibility
+    return half;
+  }
+  function computeQuietFraction(){
+    const half = computeQuietHalfAngle();
+    // Quiet arc is centered at 180°, total width = 2*half
+    return Math.min(1, Math.max(0, (2*half)/360));
+  }
+  function isQuietNow(phiDeg){
+    // Quiet if the current orbital phase (Earth-centered) is within the quiet arc around 180°
+    const half = computeQuietHalfAngle();
+    const diff = Math.abs(((phiDeg - 180 + 540)%360)-180); // distance to 180°, wrap
+    return diff <= half;
+  }
+
+  function draw(){
+    const W=canvas.width, H=canvas.height;
+    ctx.clearRect(0,0,W,H);
+    // background
+    const g=ctx.createLinearGradient(0,0,0,H); g.addColorStop(0,'#0d142e'); g.addColorStop(1,'#0a1126'); ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
+    // Earth at center-left
+    const Ex=W*0.32,Ey=H*0.52,Er=38;
+    ctx.fillStyle='#2b6cff'; ctx.beginPath(); ctx.arc(Ex,Ey,Er,0,Math.PI*2); ctx.fill();
+    // Orbit circle
+    const Rorb=Math.min(W,H)*0.28;
+    ctx.strokeStyle='#243b78'; ctx.lineWidth=1.5; ctx.beginPath(); ctx.arc(Ex,Ey,Rorb,0,Math.PI*2); ctx.stroke();
+    // Quiet window arc around 180°
+    const half = computeQuietHalfAngle()*Math.PI/180;
+    ctx.strokeStyle='rgba(105,208,143,0.9)'; ctx.lineWidth=8; ctx.beginPath();
+    ctx.arc(Ex,Ey,Rorb, Math.PI - half, Math.PI + half);
+    ctx.stroke();
+    // Moon position from phase slider (0°=congiunzione, 180°=opposizione)
+    const phi = parseFloat( (phase?.value||'30') ) * Math.PI/180;
+    const Mx = Ex + Rorb*Math.cos(phi), My=Ey + Rorb*Math.sin(phi);
+    // Moon
+    ctx.fillStyle='#cfd2db'; ctx.beginPath(); ctx.arc(Mx,My,16,0,Math.PI*2); ctx.fill();
+    // Far-side mark (opposite of Earth direction)
+    ctx.strokeStyle='rgba(255,255,255,0.25)'; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(Mx,My); ctx.lineTo(Mx + 40*Math.cos(phi), My + 40*Math.sin(phi)); ctx.stroke();
+
+    // Labels
+    ctx.fillStyle='#eaf1ff'; ctx.font='12px system-ui';
+    ctx.fillText('Earth (RFI)', Ex-32, Ey-50);
+    ctx.fillText('Moon', Mx-16, My-22);
+    ctx.fillText('Quiet window', Ex+Rorb*Math.cos(Math.PI)-50, Ey-Rorb-10);
+
+    // Quiet status
+    const quiet = isQuietNow( parseFloat(phase?.value||'30') );
+    const frac = computeQuietFraction();
+    if(quietFracEl) quietFracEl.textContent = (frac*100).toFixed(1)+'%';
+    if(quietStateEl) { quietStateEl.textContent = quiet? 'QUIET' : 'NOISY'; quietStateEl.style.color = quiet? '#69d08f' : '#ff9aa5'; }
+  }
+  ['input','change'].forEach(ev=>{
+    phase && phase.addEventListener(ev, draw);
+    libAmp && libAmp.addEventListener(ev, draw);
+    quietMargin && quietMargin.addEventListener(ev, draw);
+  });
+  draw();
+})();
