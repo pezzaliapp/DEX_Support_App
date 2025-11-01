@@ -91,14 +91,38 @@ function updateScience(){ const fMHz=parseFloat(s_freq.value),d=parseFloat(s_ele
 ['input','change'].forEach(ev=>{ s_freq?.addEventListener(ev,updateScience); s_elem?.addEventListener(ev,updateScience); s_theta?.addEventListener(ev,updateScience); }); updateScience();
 
 /* Export & Report */
-function currentScience(){ const fMHz=parseFloat(s_freq.value),d=parseFloat(s_elem.value),th=parseFloat(s_theta.value),z=1420/fMHz-1,lambda=300/fMHz,D=lambda/arcminToRad(th),fov_deg=(lambda/d)*180/Math.PI; return {fMHz,d_m:d,theta_arcmin:th,z,lambda_m:lambda,baseline_required_m:D,fov_deg} }
+function currentScience(){ const fMHz=parseFloat(s_freq.value),d=parseFloat(s_elem.value),th=parseFloat(s_theta.value),z=1420/fMHz-1,lambda=300/fMHz,D=lambda/arcminToRad(th),fov_deg=(lambda/d)*180/Math.PI; return {fMHz,d_m:d,theta_arcmin:th,z,lambda_m:lambda,baseline_required_m:D,fov_deg}; }
 function currentArray(){ const N=parseInt(nAnt.value),g=geom.value,pts=genAntennas(N,g),dists=[]; for(let i=0;i<pts.length;i++){ for(let j=i+1;j<pts.length;j++){ const dx=pts[i].x-pts[j].x,dy=pts[i].y-pts[j].y; dists.push(Math.sqrt(dx*dx+dy*dy)); } } const bins=30,hist=new Array(bins).fill(0); dists.forEach(d=>{ let k=Math.floor(d/Math.SQRT2*bins); if(k<0)k=0; if(k>=bins)k=bins-1; hist[k]++; }); return {N,geometry:g,points:pts,baselines:dists,histogram:hist,bins}; }
 function download(name,mime,content){ const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([content],{type:mime})); a.download=name; document.body.appendChild(a); a.click(); a.remove(); }
+
 $('#exportJSON')?.addEventListener('click',()=>{ const payload={timestamp:new Date().toISOString(), science:currentScience(), array:currentArray()}; download('dex_edu_export.json','application/json',JSON.stringify(payload,null,2)); });
 $('#exportCSV')?.addEventListener('click',()=>{ const A=currentArray(); let csv='i,j,dx,dy,dist_norm\\n'; const P=A.points; for(let i=0;i<P.length;i++){ for(let j=i+1;j<P.length;j++){ const dx=(P[i].x-P[j].x).toFixed(6),dy=(P[i].y-P[j].y).toFixed(6),d=Math.sqrt((P[i].x-P[j].x)**2+(P[i].y-P[j].y)**2).toFixed(6); csv+=`${i},${j},${dx},${dy},${d}\\n`; } } download('dex_edu_baselines.csv','text/csv',csv); });
-$('#openReport')?.addEventListener('click',()=>{ const S=currentScience(),A=currentArray(); const html=`<!DOCTYPE html><html><head><meta charset='utf-8'><title>DEX‑Edu Report</title><style>body{font-family:system-ui,Segoe UI,Roboto,Arial;margin:24px}small{color:#555}table{border-collapse:collapse}td,th{border:1px solid #ccc;padding:6px 8px}</style></head><body><h1>DEX‑Edu Report</h1><small>${new Date().toLocaleString()}</small><h2>Science</h2><ul><li>f=${S.fMHz} MHz → z=${(S.z).toFixed(2)}, λ=${S.lambda_m.toFixed(2)} m</li><li>θ=${S.theta_arcmin}′ → D≈${S.baseline_required_m.toFixed(1)} m</li><li>d=${S.d_m} m → FoV≈${S.fov_deg.toFixed(1)}°</li></ul><h2>Array</h2><p>N=${A.N}, geom=${A.geometry}, baselines=${A.baselines.length}</p><h3>Prime 20 baseline</h3><table><tr><th>#</th><th>dist_norm</th></tr>${A.baselines.slice(0,20).map((d,i)=>`<tr><td>${i+1}</td><td>${d.toFixed?d.toFixed(6):d}</td></tr>`).join('')}</table><script>window.onload=()=>window.print()</script></body></html>`; const w=window.open('about:blank','_blank'); w.document.write(html); w.document.close(); });
 
-/* uv-plane */
+$('#openReport')?.addEventListener('click',()=>{
+  const S=currentScience(), A=currentArray();
+  const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>DEX‑Edu Report</title>
+  <style>body{font-family:system-ui,Segoe UI,Roboto,Arial;margin:24px;color:#111}small{color:#555}table{border-collapse:collapse;margin-top:8px}td,th{border:1px solid #ccc;padding:6px 8px}</style></head>
+  <body>
+  <h1>DEX‑Edu Report</h1>
+  <small>Generated: ${new Date().toLocaleString()}</small>
+  <h2>Science</h2>
+  <ul>
+    <li>f = <b>${S.fMHz} MHz</b> → z = <b>${S.z.toFixed(2)}</b>, λ = <b>${S.lambda_m.toFixed(2)} m</b></li>
+    <li>θ = <b>${S.theta_arcmin}′</b> → D ≈ <b>${S.baseline_required_m.toFixed(1)} m</b></li>
+    <li>FoV ≈ <b>${S.fov_deg.toFixed(1)}°</b></li>
+  </ul>
+  <h2>Array</h2>
+  <p>N = <b>${A.N}</b>, geometria = <b>${A.geometry}</b></p>
+  <p>Numero baseline = ${A.baselines.length}</p>
+  <h3>Prime 20 baseline</h3>
+  <table><tr><th>#</th><th>dist_norm</th></tr>${
+    A.baselines.slice(0,20).map((d,i)=>`<tr><td>${i+1}</td><td>${(d.toFixed?d.toFixed(6):d)}</td></tr>`).join('')
+  }</table>
+  <script>window.onload=()=>window.print()</script>
+  </body></html>`;
+  const w=window.open('about:blank','_blank'); w.document.write(html); w.document.close();
+});
+/* uv-plane *//* uv-plane */
 const uvView=$('#uvView'),uvCtx=uvView?.getContext('2d'),uv_span=$('#uv_span'),uv_spanVal=$('#uv_spanVal'),uv_rot=$('#uv_rot'),uv_rotVal=$('#uv_rotVal');
 function getLambda(){ return s_freq? 300/parseFloat(s_freq.value||'30'):10 }
 function getPts(){ return genAntennas(parseInt(nAnt.value), geom.value).map(p=>({x:p.x,y:p.y})) }
