@@ -1,10 +1,12 @@
-# DEX‑Edu Support App — ULW & Lunar Far Side
+# DEX-Edu Support App — Dark-Ages EXplorer Educational Tool
 
-- Science Parameters (z, λ, D≈λ/θ, FoV, età, mK, scala Mpc)
-- 21‑cm Toy Simulator
-- Array Planner + stats
-- uv‑plane qualitativo + PNG
-- Lunar Radio Shield (concept)
-- Export JSON/CSV + Report stampabile
+PWA educativa e offline-ready per concetti ULW/Dark Ages:
+- Parametri Scientifici (z, λ, baseline per θ, FoV, età dell’Universo)
+- Simulatore 21‑cm (foreground vs globale)
+- Array Planner (baseline histogram)
+- Lunar Far‑Side “Radio Shield”
 
-MIT License — Prototipo educativo ispirato a DEX; nessuna affiliazione ufficiale.
+## Naming & Legal Disclaimer
+Prototipo indipendente **ispirato** a **DEX — Dark‑Ages EXplorer**. Non affiliato né approvato da ESA o partner.
+
+MIT License.
