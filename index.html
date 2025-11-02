@@ -13,9 +13,11 @@
 </head>
 <body>
 <header>
-  <div class="container" style="display:flex;gap:12px;align-items:center">
-    <img src="assets/icon-192.png" alt="DEX" width="32" height="32" style="border-radius:8px">
-    <h1>DEX-Edu Support App <span class="badge">ispirata a DEX — Dark-Ages EXplorer</span></h1>
+  <div class="container" style="display:flex;gap:12px;align-items:center;justify-content:space-between">
+    <div style="display:flex;gap:12px;align-items:center">
+      <img src="assets/icon-192.png" alt="DEX" width="32" height="32" style="border-radius:8px">
+      <h1>DEX-Edu Support App <span class="badge">ispirata a DEX — Dark-Ages EXplorer</span></h1>
+    </div>
     <div class="lang">
       <button class="tab" id="btnIT">IT</button>
       <button class="tab" id="btnEN">EN</button>
@@ -28,6 +30,7 @@
       <button class="tab" data-tab="science">Science</button>
       <button class="tab" data-tab="sim21">21‑cm Simulator</button>
       <button class="tab" data-tab="array">Array Planner</button>
+      <button class="tab" data-tab="uv">uv‑plane</button>
       <button class="tab" data-tab="shield">RFI Shield</button>
     </nav>
   </div>
@@ -36,41 +39,16 @@
 <main class="container">
   <section class="card tabpanel" id="tab-overview">
     <h2>Cos'è DEX — Dark-Ages EXplorer</h2>
-    <p>
-      DEX (Dark-Ages EXplorer) è un concept europeo per un interferometro radio a ultra‑lunghe lunghezze d'onda (ULW) 
-      sulla <b>faccia nascosta della Luna</b> per sondare l'Universo primordiale (Dark Ages/Cosmic Dawn).
-    </p>
-    <p class="small muted"><b>Nota legale:</b> questa app è un progetto indipendente a scopo educativo, ispirato al concept DEX — Dark-Ages EXplorer. 
-      Non è affiliata, sponsorizzata o approvata da ESA o dagli enti partner.</p>
-    <div class="grid grid-2">
-      <div>
-        <h3>Obiettivi</h3>
-        <ul>
-          <li>Rilevare segnali debolissimi a 10–50 MHz (linea 21‑cm redshiftata).</li>
-          <li>Sfruttare il silenzio radio naturale della faccia nascosta.</li>
-          <li>Sviluppare tecnologie ULW a TRL elevato, con roadmap per missioni future.</li>
-        </ul>
-      </div>
-      <div>
-        <h3>Cosa offre questa app</h3>
-        <ul>
-          <li>Simulatori didattici (segnale 21‑cm vs foreground).</li>
-          <li>Planner semplificato per layout d’antenna e baseline.</li>
-          <li>Visuale concettuale del “radio‑shadow” lunare.</li>
-        </ul>
-      </div>
-    </div>
-  
+    <p>DEX (Dark-Ages EXplorer) è un concept europeo per un interferometro ULW sulla <b>faccia nascosta della Luna</b> per sondare il cosmo primordiale.</p>
+    <p class="small muted"><b>Nota legale:</b> progetto indipendente a scopo educativo ispirato a DEX — non affiliato/approvato da ESA o partner.</p>
     <section class="card">
       <h3>Export & Report</h3>
       <div class="controls">
-        <button class="tab" id="exportJSON">Download JSON (science + array)</button>
-        <button class="tab" id="exportCSV">Download CSV (baselines)</button>
+        <button class="tab" id="exportJSON">Download JSON</button>
+        <button class="tab" id="exportCSV">Download CSV</button>
         <button class="tab" id="openReport">Apri Report stampabile</button>
       </div>
-      <p class="small muted">I file includono i parametri correnti: frequenza, z, λ, baseline richiesta, FoV, layout antenne e istogramma baseline.</p>
     </section>
-    
   </section>
 
   <section class="card tabpanel" id="tab-science" hidden>
@@ -88,7 +66,7 @@
           <input id="s_theta" type="range" min="1" max="120" step="1" value="30">
           <span id="s_thetaVal">30′</span>
         </div>
-        <p class="small muted">Assunzioni cosmologiche: H0=67.7 km/s/Mpc, Ωm=0.31, ΩΛ=0.69, età dell’Universo t₀≈13.8 Gyr.</p>
+        <p class="small muted">Assunzioni: H0=67.7, Ωm=0.31, ΩΛ=0.69, t₀≈13.8 Gyr.</p>
       </div>
       <div>
         <section class="card">
@@ -99,6 +77,8 @@
             <li><b>Baseline per θ</b> D ≈ λ/θ = <span id="s_D">—</span></li>
             <li><b>FoV elemento</b> ≈ λ/d = <span id="s_fov">—</span></li>
             <li><b>Età Universo all’epoca z</b> ≈ <span id="s_age">—</span></li>
+            <li><b>Temp. brillanza 21‑cm</b> ≈ <span id="s_T21">—</span> mK</li>
+            <li><b>Scala fisica</b> θ×D<sub>A</sub> ≈ <span id="s_scale">—</span> Mpc</li>
           </ul>
         </section>
       </div>
@@ -116,7 +96,7 @@
       <span id="betaVal">2.50</span>
     </div>
     <div class="canvasWrap"><canvas id="chart" width="800" height="320"></canvas></div>
-    <small class="muted">Curva blu = foreground (potenza ≈ ν<sup>−β</sup>) • Curva bianca = segnale globale 21‑cm (modellazione qualitativa)</small>
+    <small class="muted">Blu = foreground (≈ ν<sup>−β</sup>) • Bianco = 21‑cm globale (toy)</small>
   </section>
 
   <section class="card tabpanel" id="tab-array" hidden>
@@ -136,12 +116,34 @@
       <div class="canvasWrap"><canvas id="arrayView" width="800" height="320" aria-label="layout antenne"></canvas></div>
       <div class="canvasWrap"><canvas id="baselineView" width="800" height="320" aria-label="istogramma baseline"></canvas></div>
     </div>
-    <small class="muted">Le baseline sono distanze antenna‑antenna normalizzate (istogramma qualitativo, non uv‑coverage reale).</small>
+    <section class="card">
+      <h3>Array Stats</h3>
+      <ul>
+        <li>Baseline min/max/media (norm.): <b><span id="a_min">—</span></b> / <b><span id="a_max">—</span></b> / <b><span id="a_mean">—</span></b></li>
+        <li>D<sub>max</sub> (m) = <b><span id="a_Dmax">—</span></b> → θ ≈ λ/D<sub>max</sub> = <b><span id="a_theta">—</span></b></li>
+      </ul>
+    </section>
+    <small class="muted">Baseline = distanze normalizzate; istogramma qualitativo, non uv‑coverage reale.</small>
+  </section>
+
+  <section class="card tabpanel" id="tab-uv" hidden>
+    <h2>uv‑plane (qualitativo)</h2>
+    <div class="controls">
+      <label>Array span (m)</label>
+      <input id="uv_span" type="range" min="10" max="1000" step="10" value="200">
+      <span id="uv_spanVal">200 m</span>
+      <label>Rotazione sintetica (°)</label>
+      <input id="uv_rot" type="range" min="0" max="180" step="1" value="0">
+      <span id="uv_rotVal">0°</span>
+      <button class="tab" id="btnUvPng">Salva PNG</button>
+    </div>
+    <div class="canvasWrap"><canvas id="uvView" width="800" height="420" aria-label="uv coverage"></canvas></div>
+    <small class="muted">Indicatore θ ≈ λ/Dmax: <b><span id="uv_theta">—</span></b></small>
   </section>
 
   <section class="card tabpanel" id="tab-shield" hidden>
     <h2>Lunar Far‑Side Radio Shield</h2>
-    <p>Illustrazione concettuale del “cono d’ombra” radio rispetto alla Terra. Trascina il cursore per ruotare la geometria.</p>
+    <p>Cono d’ombra radio rispetto alla Terra; ruota la geometria.</p>
     <div class="controls">
       <label>Angolo di fase orbitale</label>
       <input id="phase" type="range" min="0" max="360" step="1" value="30">
@@ -153,12 +155,8 @@
 
 <footer>
   <div class="container">
-    <div>
-      <small class="muted">MIT License • Offline‑ready PWA</small>
-    </div>
-    <div>
-      <small class="muted">Ispirata al concept DEX — uso educativo • Nessuna affiliazione ufficiale</small>
-    </div>
+    <div><small class="muted">MIT License • Offline‑ready PWA</small></div>
+    <div><small class="muted">Ispirata al concept DEX • Nessuna affiliazione ufficiale • <a href="https://github.com/yourname/DEX-Edu" target="_blank" rel="noopener">Contribuisci su GitHub</a></small></div>
   </div>
 </footer>
 
