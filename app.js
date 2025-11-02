@@ -344,16 +344,9 @@ function drawUV(){
       const plot = (uu,vv)=>{
         const x = W/2 + uu*K;
         const y = H/2 - vv*K;
-        if(x>20 && x<W-20 && y>20 && y<H-20){
+        if(x>20 and x<W-20 and y>20 and y<H-20){
           uvCtx.beginPath(); uvCtx.arc(x,y,2,0,Math.PI*2); uvCtx.fill();
         }
-document.getElementById('btnUvPng')?.addEventListener('click',()=>{
-  const a=document.createElement('a');
-  a.href=uvView.toDataURL('image/png');
-  a.download='uv_plane.png';
-  a.click();
-});
-
       };
       plot(u,v); plot(-u,-v);
     }
@@ -371,3 +364,316 @@ document.getElementById('s_freq')?.addEventListener('input', drawUV);
 document.getElementById('nAnt')?.addEventListener('input', drawUV);
 document.getElementById('geom')?.addEventListener('change', drawUV);
 drawUV();
+
+
+// ===== Multilingual (IT default; EN/DE/PT) =====
+(function(){
+  const LANG = {
+    it: {
+      app_title:"DEX-Edu Support App — Dark-Ages EXplorer Educational Tool",
+      brand:"DEX-Edu Support App",
+      badge:"ispirata a DEX — Dark-Ages EXplorer",
+      install:"⬇︎ Installa",
+      nav_overview:"Overview",
+      nav_science:"Science",
+      nav_sim:"21‑cm Simulator",
+      nav_array:"Array Planner",
+      nav_uv:"uv‑plane",
+      nav_shield:"RFI Shield",
+
+      ov_h2:"Cos'è DEX — Dark-Ages EXplorer",
+      ov_p1:"DEX (Dark-Ages EXplorer) è un concept europeo per un interferometro radio a ultra‑lunghe lunghezze d'onda (ULW) sulla <b>faccia nascosta della Luna</b> per sondare l'Universo primordiale (Dark Ages/Cosmic Dawn).",
+      ov_legal:"<b>Nota legale:</b> questa app è un progetto indipendente a scopo educativo, ispirato al concept DEX — Dark-Ages EXplorer. Non è affiliata, sponsorizzata o approvata da ESA o dagli enti partner.",
+      ov_goals:"Obiettivi",
+      ov_g1:"Rilevare segnali debolissimi a 10–50 MHz (linea 21‑cm redshiftata).",
+      ov_g2:"Sfruttare il silenzio radio naturale della faccia nascosta.",
+      ov_g3:"Sviluppare tecnologie ULW a TRL elevato, con roadmap per missioni future.",
+      ov_app:"Cosa offre questa app",
+      ov_a1:"Simulatori didattici (segnale 21‑cm vs foreground).",
+      ov_a2:"Planner semplificato per layout d’antenna e baseline.",
+      ov_a3:"Visuale concettuale del “radio‑shadow” lunare.",
+
+      export_h3:"Export & Report",
+      btn_json:"Download JSON (science + array)",
+      btn_csv:"Download CSV (baselines)",
+      btn_report:"Apri Report stampabile",
+      export_note:"I file includono i parametri correnti: frequenza, z, λ, baseline richiesta, FoV, layout antenne e istogramma baseline.",
+
+      sc_h2:"Parametri Scientifici",
+      sc_f:"Frequenza (MHz)",
+      sc_d:"Diametro elemento d (m)",
+      sc_theta:"Risoluzione desiderata θ (arcmin)",
+      sc_note:"Assunzioni cosmologiche: H0=67.7 km/s/Mpc, Ωm=0.31, ΩΛ=0.69, età dell’Universo t₀≈13.8 Gyr.",
+      sc_out:"Output",
+      sc_red:"Redshift",
+      sc_lambda:"Lunghezza d’onda",
+      sc_D:"Baseline per θ",
+      sc_fov:"FoV elemento",
+      sc_age:"Età Universo all’epoca z",
+
+      sim_h2:"21‑cm Toy Simulator",
+      sim_f:"Frequenza (MHz)",
+      sim_beta:"Indice spettrale foreground β",
+      sim_legend:"Curva blu = foreground (potenza ≈ ν<sup>−β</sup>) • Curva bianca = segnale globale 21‑cm (modellazione qualitativa)",
+
+      arr_h2:"Array Planner (toy)",
+      arr_n:"Numero antenne",
+      arr_geom:"Geometria",
+      arr_grid:"Griglia",
+      arr_ring:"Anelli",
+      arr_rand:"Random",
+      arr_note:"Le baseline sono distanze antenna‑antenna normalizzate (istogramma qualitativo, non uv‑coverage reale).",
+
+      uv_h2:"uv‑plane (qualitativo)",
+      uv_span:"Array span (m)",
+      uv_rot:"Rotazione sintetica (°)",
+      uv_note:"λ prende la frequenza dalla scheda Science. Scala e copertura sono illustrative.",
+
+      sh_h2:"Lunar Far‑Side Radio Shield",
+      sh_p:"Illustrazione concettuale del “cono d’ombra” radio rispetto alla Terra. Trascina il cursore per ruotare la geometria.",
+      sh_phase:"Angolo di fase orbitale",
+
+      foot_left:"MIT License • Offline‑ready PWA",
+      foot_right:"Ispirata al concept DEX — uso educativo • Nessuna affiliazione ufficiale"
+    },
+    en: {
+      app_title:"DEX‑Edu Support App — Dark‑Ages EXplorer Educational Tool",
+      brand:"DEX‑Edu Support App",
+      badge:"inspired by DEX — Dark‑Ages EXplorer",
+      install:"⬇︎ Install",
+      nav_overview:"Overview",
+      nav_science:"Science",
+      nav_sim:"21‑cm Simulator",
+      nav_array:"Array Planner",
+      nav_uv:"uv‑plane",
+      nav_shield:"RFI Shield",
+
+      ov_h2:"What is DEX — Dark‑Ages EXplorer",
+      ov_p1:"DEX (Dark‑Ages EXplorer) is a European concept for an ultra‑long‑wavelength (ULW) radio interferometer on the <b>far side of the Moon</b> to probe the early Universe (Dark Ages/Cosmic Dawn).",
+      ov_legal:"<b>Legal note:</b> this app is an independent educational project inspired by the DEX concept. It is not affiliated with, sponsored or endorsed by ESA or partner entities.",
+      ov_goals:"Goals",
+      ov_g1:"Detect extremely faint signals at 10–50 MHz (redshifted 21‑cm line).",
+      ov_g2:"Exploit the natural radio silence of the lunar far side.",
+      ov_g3:"Develop high‑TRL ULW technologies with a roadmap for future missions.",
+      ov_app:"What this app offers",
+      ov_a1:"Educational simulators (21‑cm signal vs foreground).",
+      ov_a2:"Simplified planner for antenna layout and baselines.",
+      ov_a3:"Conceptual view of the lunar “radio shadow”.",
+
+      export_h3:"Export & Report",
+      btn_json:"Download JSON (science + array)",
+      btn_csv:"Download CSV (baselines)",
+      btn_report:"Open printable report",
+      export_note:"Files include current parameters: frequency, z, λ, required baseline, FoV, antenna layout and baseline histogram.",
+
+      sc_h2:"Science Parameters",
+      sc_f:"Frequency (MHz)",
+      sc_d:"Element diameter d (m)",
+      sc_theta:"Desired resolution θ (arcmin)",
+      sc_note:"Cosmology assumptions: H0=67.7 km/s/Mpc, Ωm=0.31, ΩΛ=0.69, age of the Universe t₀≈13.8 Gyr.",
+      sc_out:"Output",
+      sc_red:"Redshift",
+      sc_lambda:"Wavelength",
+      sc_D:"Baseline for θ",
+      sc_fov:"Element FoV",
+      sc_age:"Universe age at z",
+
+      sim_h2:"21‑cm Toy Simulator",
+      sim_f:"Frequency (MHz)",
+      sim_beta:"Foreground spectral index β",
+      sim_legend:"Blue curve = foreground (power ≈ ν<sup>−β</sup>) • White curve = global 21‑cm signal (qualitative model)",
+
+      arr_h2:"Array Planner (toy)",
+      arr_n:"Number of antennas",
+      arr_geom:"Geometry",
+      arr_grid:"Grid",
+      arr_ring:"Rings",
+      arr_rand:"Random",
+      arr_note:"Baselines are normalized antenna‑to‑antenna distances (qualitative histogram, not real uv‑coverage).",
+
+      uv_h2:"uv‑plane (qualitative)",
+      uv_span:"Array span (m)",
+      uv_rot:"Synthetic rotation (°)",
+      uv_note:"λ takes frequency from the Science panel. Scale and coverage are illustrative.",
+
+      sh_h2:"Lunar Far‑Side Radio Shield",
+      sh_p:"Concept illustration of the radio “shadow cone” relative to Earth. Drag the slider to rotate the geometry.",
+      sh_phase:"Orbital phase angle",
+
+      foot_left:"MIT License • Offline‑ready PWA",
+      foot_right:"Inspired by DEX — educational use • No official affiliation"
+    },
+    de: {
+      app_title:"DEX‑Edu Support App — Dark‑Ages‑EXplorer Lern‑Tool",
+      brand:"DEX‑Edu Support App",
+      badge:"inspiriert von DEX — Dark‑Ages EXplorer",
+      install:"⬇︎ Installieren",
+      nav_overview:"Überblick",
+      nav_science:"Wissenschaft",
+      nav_sim:"21‑cm‑Simulator",
+      nav_array:"Array‑Planer",
+      nav_uv:"uv‑Ebene",
+      nav_shield:"RFI‑Schatten",
+
+      ov_h2:"Was ist DEX — Dark‑Ages EXplorer",
+      ov_p1:"DEX (Dark‑Ages EXplorer) ist ein europäisches Konzept für ein ULW‑Radiointerferometer auf der <b>Rückseite des Mondes</b>, um das frühe Universum (Dark Ages/Cosmic Dawn) zu untersuchen.",
+      ov_legal:"<b>Rechtlicher Hinweis:</b> Diese App ist ein unabhängiges Bildungsprojekt, inspiriert vom DEX‑Konzept. Keine Verbindung, Förderung oder Billigung durch die ESA oder Partner.",
+      ov_goals:"Ziele",
+      ov_g1:"Nachweis extrem schwacher Signale bei 10–50 MHz (rotverschobene 21‑cm‑Linie).",
+      ov_g2:"Nutzung der natürlichen Funkstille der Mondrückseite.",
+      ov_g3:"Entwicklung von ULW‑Technologien mit hohem TRL und Roadmap für zukünftige Missionen.",
+      ov_app:"Was diese App bietet",
+      ov_a1:"Lehr‑Simulatoren (21‑cm‑Signal vs. Vordergrund).",
+      ov_a2:"Vereinfachter Planer für Antennen‑Layout und Baselines.",
+      ov_a3:"Konzeptuelle Ansicht des „Radio‑Schattens“ des Mondes.",
+
+      export_h3:"Export & Bericht",
+      btn_json:"JSON herunterladen (Science + Array)",
+      btn_csv:"CSV herunterladen (Baselines)",
+      btn_report:"Druckbaren Bericht öffnen",
+      export_note:"Dateien enthalten aktuelle Parameter: Frequenz, z, λ, benötigte Basislinie, FoV, Antennen‑Layout und Baseline‑Histogramm.",
+
+      sc_h2:"Wissenschaftliche Parameter",
+      sc_f:"Frequenz (MHz)",
+      sc_d:"Element‑Durchmesser d (m)",
+      sc_theta:"Gewünschte Auflösung θ (Bogenminuten)",
+      sc_note:"Kosmologie‑Annahmen: H0=67,7 km/s/Mpc, Ωm=0,31, ΩΛ=0,69, Alter des Universums t₀≈13,8 Gyr.",
+      sc_out:"Ausgabe",
+      sc_red:"Rotverschiebung",
+      sc_lambda:"Wellenlänge",
+      sc_D:"Basislinie für θ",
+      sc_fov:"FoV des Elements",
+      sc_age:"Universumsalter bei z",
+
+      sim_h2:"21‑cm‑Spiel‑Simulator",
+      sim_f:"Frequenz (MHz)",
+      sim_beta:"Vordergrund‑Spektralindex β",
+      sim_legend:"Blaue Kurve = Vordergrund (Leistung ≈ ν<sup>−β</sup>) • Weiße Kurve = globales 21‑cm‑Signal (qualitatives Modell)",
+
+      arr_h2:"Array‑Planer (Spiel)",
+      arr_n:"Anzahl Antennen",
+      arr_geom:"Geometrie",
+      arr_grid:"Gitter",
+      arr_ring:"Ringe",
+      arr_rand:"Zufällig",
+      arr_note:"Baselines sind normalisierte Antennen‑Abstände (qualitatives Histogramm, keine reale uv‑Abdeckung).",
+
+      uv_h2:"uv‑Ebene (qualitativ)",
+      uv_span:"Array‑Spannweite (m)",
+      uv_rot:"Synthetische Rotation (°)",
+      uv_note:"λ übernimmt die Frequenz aus dem Science‑Panel. Maßstab und Abdeckung sind illustrativ.",
+
+      sh_h2:"Radio‑Schatten der Mondrückseite",
+      sh_p:"Konzeptdarstellung des Funk‑„Schattenkegels“ relativ zur Erde. Ziehe den Regler, um die Geometrie zu drehen.",
+      sh_phase:"Orbitaler Phasenwinkel",
+
+      foot_left:"MIT‑Lizenz • Offline‑fähige PWA",
+      foot_right:"Inspiriert von DEX — Bildungseinsatz • Keine offizielle Verbindung"
+    },
+    pt: {
+      app_title:"DEX‑Edu Support App — Ferramenta Educacional Dark‑Ages EXplorer",
+      brand:"DEX‑Edu Support App",
+      badge:"inspirada em DEX — Dark‑Ages EXplorer",
+      install:"⬇︎ Instalar",
+      nav_overview:"Visão geral",
+      nav_science:"Ciência",
+      nav_sim:"Simulador 21‑cm",
+      nav_array:"Planejador de Array",
+      nav_uv:"plano‑uv",
+      nav_shield:"Sombra RFI",
+
+      ov_h2:"O que é DEX — Dark‑Ages EXplorer",
+      ov_p1:"DEX (Dark‑Ages EXplorer) é um conceito europeu para um interferômetro de rádio em comprimentos de onda ultra‑longos (ULW) no <b>lado oculto da Lua</b> para investigar o Universo primordial (Dark Ages/Cosmic Dawn).",
+      ov_legal:"<b>Nota legal:</b> este app é um projeto educacional independente inspirado no conceito DEX. Não é afiliado, patrocinado ou endossado pela ESA ou parceiros.",
+      ov_goals:"Objetivos",
+      ov_g1:"Detectar sinais extremamente fracos em 10–50 MHz (linha de 21‑cm redshiftada).",
+      ov_g2:"Aproveitar o silêncio de rádio natural do lado oculto lunar.",
+      ov_g3:"Desenvolver tecnologias ULW de alto TRL, com roteiro para missões futuras.",
+      ov_app:"O que este app oferece",
+      ov_a1:"Simuladores educacionais (sinal de 21‑cm vs foreground).",
+      ov_a2:"Planejador simplificado para layout de antenas e baselines.",
+      ov_a3:"Visão conceitual da “sombra de rádio” lunar.",
+
+      export_h3:"Exportar & Relatório",
+      btn_json:"Baixar JSON (ciência + array)",
+      btn_csv:"Baixar CSV (baselines)",
+      btn_report:"Abrir relatório para impressão",
+      export_note:"Arquivos incluem parâmetros atuais: frequência, z, λ, baseline requerida, FoV, layout de antenas e histograma de baselines.",
+
+      sc_h2:"Parâmetros Científicos",
+      sc_f:"Frequência (MHz)",
+      sc_d:"Diâmetro do elemento d (m)",
+      sc_theta:"Resolução desejada θ (min de arco)",
+      sc_note:"Suposições cosmológicas: H0=67,7 km/s/Mpc, Ωm=0,31, ΩΛ=0,69, idade do Universo t₀≈13,8 Gyr.",
+      sc_out:"Saída",
+      sc_red:"Redshift",
+      sc_lambda:"Comprimento de onda",
+      sc_D:"Baseline para θ",
+      sc_fov:"FoV do elemento",
+      sc_age:"Idade do Universo em z",
+
+      sim_h2:"Simulador 21‑cm (lúdico)",
+      sim_f:"Frequência (MHz)",
+      sim_beta:"Índice espectral do foreground β",
+      sim_legend:"Curva azul = foreground (potência ≈ ν<sup>−β</sup>) • Curva branca = sinal global de 21‑cm (modelo qualitativo)",
+
+      arr_h2:"Planejador de Array (lúdico)",
+      arr_n:"Número de antenas",
+      arr_geom:"Geometria",
+      arr_grid:"Grade",
+      arr_ring:"Anéis",
+      arr_rand:"Aleatório",
+      arr_note:"Baselines são distâncias normalizadas entre antenas (histograma qualitativo, não cobertura uv real).",
+
+      uv_h2:"plano‑uv (qualitativo)",
+      uv_span:"Extensão do array (m)",
+      uv_rot:"Rotação sintética (°)",
+      uv_note:"λ usa a frequência do painel Ciência. Escala e cobertura são ilustrativas.",
+
+      sh_h2:"Sombra de Rádio no Lado Oculto da Lua",
+      sh_p:"Ilustração conceitual do “cone de sombra” de rádio em relação à Terra. Arraste o controle para rotacionar a geometria.",
+      sh_phase:"Ângulo de fase orbital",
+
+      foot_left:"Licença MIT • PWA pronta para offline",
+      foot_right:"Inspirada no DEX — uso educacional • Sem afiliação oficial"
+    }
+  };
+
+  const sel = document.getElementById('langSel');
+  const htmlEl = document.documentElement;
+
+  function applyLang(lang){
+    const dict = LANG[lang] || LANG.it;
+    // Update title
+    const titleEl = document.querySelector('title[data-i18n="app_title"]');
+    if(titleEl) titleEl.textContent = dict.app_title;
+    // Replace textContent for [data-i18n]
+    document.querySelectorAll('[data-i18n]').forEach(el=>{
+      const key = el.getAttribute('data-i18n');
+      if(dict[key] !== undefined){
+        el.textContent = dict[key];
+      }
+    });
+    // Replace innerHTML for [data-i18n-html]
+    document.querySelectorAll('[data-i18n-html]').forEach(el=>{
+      const key = el.getAttribute('data-i18n-html');
+      if(dict[key] !== undefined){
+        el.innerHTML = dict[key];
+      }
+    });
+    // Keep current tab label styles
+    // Update lang attribute and store
+    htmlEl.setAttribute('lang', lang);
+    try{ localStorage.setItem('dex_lang', lang); }catch(_){}
+  }
+
+  // Hook select
+  if(sel){
+    sel.addEventListener('change', ()=> applyLang(sel.value));
+    // init from storage or default 'it'
+    let lang = 'it';
+    try{ lang = localStorage.getItem('dex_lang') || 'it'; }catch(_){}
+    sel.value = lang;
+    applyLang(lang);
+  }
+})();

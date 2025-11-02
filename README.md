@@ -6,6 +6,10 @@ PWA educativa e offline-ready per concetti ULW/Dark Ages:
 - Array Planner (baseline histogram)
 - Lunar Far‑Side “Radio Shield”
 
+## Multilingue
+Interfaccia in **Italiano** (default), **English**, **Deutsch**, **Português**.  
+Selettore lingua in alto a destra. La scelta viene salvata in `localStorage`.
+
 ## Naming & Legal Disclaimer
 Prototipo indipendente **ispirato** a **DEX — Dark‑Ages EXplorer**. Non affiliato né approvato da ESA o partner.
 
