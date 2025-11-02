@@ -344,7 +344,7 @@ function drawUV(){
       const plot = (uu,vv)=>{
         const x = W/2 + uu*K;
         const y = H/2 - vv*K;
-        if(x>20 && x<W-20 && y>20 && y<H-20){
+        if(x>20 and x<W-20 and y>20 and y<H-20){
           uvCtx.beginPath(); uvCtx.arc(x,y,2,0,Math.PI*2); uvCtx.fill();
         }
       };
